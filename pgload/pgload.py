@@ -4,6 +4,6 @@ def whoami():
     Args:
         None
     Returns:
-        Nones
+        None
     """
-    print('I am pgload, currently under development.')
+    print("I am pgload, currently under development.")
