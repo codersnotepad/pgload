@@ -1,4 +1,3 @@
-
 # Let users know if they're missing any of our hard dependencies
 hard_dependencies = ["psycopg2"]
 missing_dependencies = []
@@ -14,3 +13,7 @@ if missing_dependencies:
         "Unable to import required dependencies:\n" + "\n".join(missing_dependencies)
     )
 del hard_dependencies, dependency, missing_dependencies
+
+from .pgload import pgload
+
+validate_data = pgload().validate_data
