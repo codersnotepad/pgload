@@ -1,6 +1,6 @@
 
 # Let users know if they're missing any of our hard dependencies
-hard_dependencies = ("psycopg2")
+hard_dependencies = ["psycopg2"]
 missing_dependencies = []
 
 for dependency in hard_dependencies:
