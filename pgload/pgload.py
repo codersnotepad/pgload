@@ -47,6 +47,21 @@ class pgload:
                 )
             )
 
+        # --- check we have all the keys we expect
+        missing_keys = list()
+        data_keys = list()
+        for k in data.keys():
+            data_keys.append(k.lower())
+
+        for k in valid_keys:
+            if k not in data_keys:
+                missing_keys.append(k)
+
+        if len(missing_keys) > 0:
+            raise ValidationError(
+                "Missing top level key(s) found: {0}. Please add.".format(missing_keys)
+            )
+
         # --- check we have data
         if not isinstance(data["data"], list):
             raise ValidationError(
