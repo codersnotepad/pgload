@@ -1,5 +1,5 @@
 import pytest
-from pgload import pgload
+import pgload
 
 
 def test_validate_data(capsys):
