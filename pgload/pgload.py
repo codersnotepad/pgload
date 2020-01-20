@@ -46,6 +46,7 @@ class pgload:
                     invalid_keys, self.valid_keys
                 )
             )
+        del invalid_keys
 
         # --- check we have all the keys we expect
         missing_keys = list()
@@ -53,7 +54,7 @@ class pgload:
         for k in data.keys():
             data_keys.append(k.lower())
 
-        for k in valid_keys:
+        for k in self.valid_keys:
             if k not in data_keys:
                 missing_keys.append(k)
 
@@ -61,6 +62,7 @@ class pgload:
             raise ValidationError(
                 "Missing top level key(s) found: {0}. Please add.".format(missing_keys)
             )
+        del missing_keys, data_keys
 
         # --- check we have data
         if not isinstance(data["data"], list):
@@ -89,6 +91,7 @@ class pgload:
                 )
             )
             return False
+        del invalid_types, column_names
 
         # --- check index columns are in types
         invalid_index = list()
@@ -115,20 +118,22 @@ class pgload:
                 "Column(s) in index list not in type list {0}".format()
             )
             return False
+        del invalid_unique
 
         # --- check keys in data rows are in types
-        invlid_dr_keys = list()
+        invalid_dr_keys = list()
         for r in data["data"]:
             for k in r.keys():
                 if k.lower() not in column_names:
-                    invlid_dr_keys.append(k)
-            invlid_dr_keys = list(set(invlid_dr_keys))
+                    invalid_dr_keys.append(k)
+            invalid_dr_keys = list(set(invalid_dr_keys))
 
-        invlid_dr_keys.sort()
-        if len(invlid_dr_keys) > 0:
+        invalid_dr_keys.sort()
+        if len(invalid_dr_keys) > 0:
             raise ValidationError(
-                "Key(s) found in data row not in type list {0}.".format(invlid_dr_keys)
+                "Key(s) found in data row not in type list {0}.".format(invalid_dr_keys)
             )
             return False
+        del invalid_dr_keys
 
         return True
