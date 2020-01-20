@@ -60,7 +60,7 @@ class pgload:
 
         if len(missing_keys) > 0:
             raise KeyError(
-                "Missing top level key(s) found: {0}. Please add.".format(missing_keys)
+                "Missing top level key(s): {0}. Please add.".format(missing_keys)
             )
         del missing_keys, data_keys
 
@@ -91,7 +91,7 @@ class pgload:
                 )
             )
             return False
-        del invalid_types, column_names
+        del invalid_types
 
         # --- check index columns are in types
         invalid_index = list()
@@ -130,6 +130,6 @@ class pgload:
                 "Key(s) found in data row not in type list {0}.".format(invalid_dr_keys)
             )
             return False
-        del invalid_dr_keys
+        del invalid_dr_keys, column_names
 
         return True
