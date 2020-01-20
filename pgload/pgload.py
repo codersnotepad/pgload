@@ -28,7 +28,7 @@ class pgload:
 
         # --- check data is a dict
         if not isinstance(data, dict):
-            raise ValidationError(
+            raise ValueError(
                 "Object is not a dictionary, type {0} passed.".format(type(data))
             )
             return False
@@ -41,7 +41,7 @@ class pgload:
 
         invalid_keys.sort()
         if len(invalid_keys) > 0:
-            raise ValidationError(
+            raise KeyError(
                 "Invalid top level key(s) found: {0}. Valid keys are limited to {1}.".format(
                     invalid_keys, self.valid_keys
                 )
@@ -59,14 +59,14 @@ class pgload:
                 missing_keys.append(k)
 
         if len(missing_keys) > 0:
-            raise ValidationError(
+            raise KeyError(
                 "Missing top level key(s) found: {0}. Please add.".format(missing_keys)
             )
         del missing_keys, data_keys
 
         # --- check we have data
         if not isinstance(data["data"], list):
-            raise ValidationError(
+            raise ValueError(
                 "Data is not a list, type {0} passed.".format(type(data["data"]))
             )
             return False
@@ -85,7 +85,7 @@ class pgload:
 
         invalid_types.sort()
         if len(invalid_types) > 0:
-            raise ValidationError(
+            raise ValueError(
                 "Invalid DB type(s) found: {0}. Valid types are limited to {1}".format(
                     invalid_types, self.valid_types
                 )
@@ -101,9 +101,7 @@ class pgload:
 
         invalid_index.sort()
         if len(invalid_index) > 0:
-            raise ValidationError(
-                "Column(s) in index list not in type list {0}".format()
-            )
+            raise KeyError("Column(s) in index list not in type list {0}".format())
             return False
 
         # --- check unique columns are in types
@@ -114,9 +112,7 @@ class pgload:
 
         invalid_unique.sort()
         if len(invalid_unique) > 0:
-            raise ValidationError(
-                "Column(s) in index list not in type list {0}".format()
-            )
+            raise KeyError("Column(s) in index list not in type list {0}".format())
             return False
         del invalid_unique
 
@@ -130,7 +126,7 @@ class pgload:
 
         invalid_dr_keys.sort()
         if len(invalid_dr_keys) > 0:
-            raise ValidationError(
+            raise KeyError(
                 "Key(s) found in data row not in type list {0}.".format(invalid_dr_keys)
             )
             return False
