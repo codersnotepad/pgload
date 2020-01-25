@@ -8,9 +8,9 @@ def test_validate_data(capsys):
             "data": [{"id": 1, "name": "tim"}],
             "type": {"id": "bigint", "name": "character"},
             "index": ["id"],
-            "unique": "id",
-            "schema": "testdata",
-            "table": "table01",
+            "unique": ["id"],
+            "schema": {"name":"testdata", "owner":"tim", "grant":{"usage":"group02","all":"group01"}},
+            "table": {"name":"table01", "owner":"tim", "grant":{"all":"group01"}},
         }
     )
     captured = capsys.readouterr()
@@ -22,6 +22,6 @@ def test_validate_data(capsys):
         "----------------------------------------------------------------------------------------"
     )
     assert (
-        "Missing top level key(s) found: ['index', 'schema', 'table', 'unique']. Please add."
+        ""
         in captured.out
     )
