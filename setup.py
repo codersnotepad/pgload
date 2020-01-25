@@ -7,7 +7,7 @@ requirements = ["psycopg2>=2.8"]
 
 setup(
     name="pgload",
-    version="0.0.8",
+    version="0.0.9",
     author="Timote WB",
     author_email="jeffmshale@gmail.com",
     description="Library of tools to load data from the web into PostgreSQL ",
