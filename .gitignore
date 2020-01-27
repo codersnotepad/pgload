@@ -134,3 +134,4 @@ taxis/
 cheat_sheet.txt
 venv/
 .DS_Store
+.local
