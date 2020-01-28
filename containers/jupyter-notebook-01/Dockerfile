@@ -9,6 +9,7 @@ USER root
 RUN sudo apt-get update
 RUN sudo apt-get install -y libpq-dev
 RUN sudo apt-get install -y gcc
+RUN sudo apt-get install -y htop
 
 RUN pip install --requirement /tmp/requirements_dev.txt && \
     fix-permissions $CONDA_DIR && \
@@ -16,4 +17,4 @@ RUN pip install --requirement /tmp/requirements_dev.txt && \
 
 RUN pip install --index-url https://test.pypi.org/simple/ \
     --extra-index-url https://pypi.org/simple \
-    pgload==0.0.9
+    pgload==0.1.0

@@ -293,8 +293,6 @@ class pgload:
             if data["type"][t].lower() in self.valid_num_types:
                 num_columns.append(t.lower())
 
-        print(num_columns)
-
         invalid_types.sort()
         if len(invalid_types) > 0:
             raise ValueError(
@@ -355,10 +353,12 @@ class pgload:
         # --- lower case all data row keys
         for i in range(len(data["data"])):
             r = dict((k.lower(), v) for k, v in data["data"][i].items())
+            r = {k: r[k] for k in sorted(r)}
             data["data"][i] = r
 
         # --- lower case all type keys
-        data["type"] = dict((k.lower(), v) for k, v in data["type"].items())
+        d = dict((k.lower(), v) for k, v in data["type"].items())
+        data["type"] = {k: d[k] for k in sorted(d)}
 
         # --- lower case all index keys
         data["index"] = [x.lower() for x in data["index"]]
@@ -367,20 +367,20 @@ class pgload:
         data["unique"] = [x.lower() for x in data["unique"]]
 
         # --- lower case all schema keys
-        data["schema"] = dict((k.lower(), v) for k, v in data["schema"].items())
+        d = dict((k.lower(), v) for k, v in data["schema"].items())
+        data["schema"] = {k: d[k] for k in sorted(d)}
 
         # --- upper case all schema.grant keys
-        data["schema"]["grant"] = dict(
-            (k.lower(), v) for k, v in data["schema"]["grant"].items()
-        )
+        d = dict((k.lower(), v) for k, v in data["schema"]["grant"].items())
+        data["schema"]["grant"] = {k: d[k] for k in sorted(d)}
 
         # --- lower case all table keys
-        data["table"] = dict((k.lower(), v) for k, v in data["table"].items())
+        d = dict((k.lower(), v) for k, v in data["table"].items())
+        data["table"] = {k: d[k] for k in sorted(d)}
 
         # --- upper case all table.grant keys
-        data["table"]["grant"] = dict(
-            (k.lower(), v) for k, v in data["table"]["grant"].items()
-        )
+        d = dict((k.lower(), v) for k, v in data["table"]["grant"].items())
+        data["table"]["grant"] = {k: d[k] for k in sorted(d)}
 
         # --- check timestamp type columns for invalid data values
         invalid_date_values = 0

@@ -131,7 +131,7 @@ dmypy.json
 
 # user ignores
 taxis/
-cheat_sheet.txt
+.cheat_sheet.txt
 venv/
 .DS_Store
 .local
