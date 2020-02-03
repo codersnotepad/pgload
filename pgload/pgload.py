@@ -424,10 +424,10 @@ class pgload:
                 )
             )
 
-        print("NOTE: Validate Data Complete.")
+        print("NOTE: Validation complete. No issues found.")
         return data
 
-    def scd2_load(self, data, max_rows=100000):
+    def scd2_load(self, data, max_rows=100000, validate_data=False):
 
         import psycopg2
         import os
@@ -465,7 +465,8 @@ class pgload:
         # ----------------------------------------------------------------------------------------
 
         # --- call validate function
-        data = self.validate_data(data)
+        if validate_data:
+            data = self.validate_data(data)
 
         # --- create cursor
         conn = psycopg2.connect(self.db_conn_str)
