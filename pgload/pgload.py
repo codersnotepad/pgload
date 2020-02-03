@@ -37,6 +37,8 @@ class pgload:
         self.invalid_num_values = ["", "."]
         self.invalid_num_values.sort()
 
+        self.db_conn_str = "host=<host name> port=<port> dbname=<database> user=<user name> password=<password>"
+
     def validate_data(self, data):
 
         # ----------------------------------------------------------------------------------------
@@ -422,4 +424,516 @@ class pgload:
                 )
             )
 
+        print("NOTE: Validate Data Complete.")
         return data
+
+    def scd2_load(self, data, max_rows=100000):
+
+        import psycopg2
+        import os
+        import socket
+
+        # ----------------------------------------------------------------------------------------
+        # order of operations
+        # ----------------------------------------------------------------------------------------
+        #
+        # --- call validate function
+        # --- create cursor
+        # --- check/create schema
+        # --- get char column lengths
+        # --- get columns
+        # --- check create table
+        #    check if columns are the same and update
+        #    if updates made, then update hash
+        #    generate create table code
+        #    apply permissions
+        #    setup default indexs and constraints
+        #    create specified indexes
+        # --- create tmp tabe for data insert
+        #    first drop if exists
+        #    next create tmp table
+        #    apply permissions
+        # --- insert into tmp table
+        # --- create insert data list
+        # --- we dont need the data anymore
+        # --- split data and insert
+        # --- we dont need idata anymore
+        # --- now that the data is in lets check for dupes vs permanent table
+        # --- update end date for records where we have updates
+        # --- insert into permanent table and tidy up
+        #
+        # ----------------------------------------------------------------------------------------
+
+        # --- call validate function
+        data = self.validate_data(data)
+
+        # --- create cursor
+        conn = psycopg2.connect(self.db_conn_str)
+        cursor = conn.cursor()
+
+        # --- check/create schema
+        cursor.execute(
+            "select distinct schema_name from information_schema.schemata where schema_name = '"
+            + data["schema"]["name"]
+            + "'"
+        )
+        if cursor.rowcount >= 1:
+            pass
+        else:
+            sql = (
+                "CREATE SCHEMA "
+                + data["schema"]["name"]
+                + ' AUTHORIZATION "'
+                + data["schema"]["owner"]
+                + '"'
+            )
+            print("NOTE:", sql)
+            cursor.execute(sql)
+            conn.commit()
+
+            for g in data["schema"]["grant"].keys():
+                sql = (
+                    "GRANT "
+                    + g.upper()
+                    + " ON SCHEMA "
+                    + data["schema"]["name"]
+                    + ' TO "'
+                    + data["schema"]["grant"][g]
+                    + '"'
+                )
+                print("NOTE:", sql)
+                cursor.execute(sql)
+                conn.commit()
+
+        # --- get char column lengths
+        char_columns = list()
+        for c in data["type"]:
+            if data["type"][c] in self.valid_char_types:
+                char_columns.append(c.lower())
+
+        char_column_lens = dict()
+        for c in char_columns:
+            char_column_lens[c] = 0
+
+        for r in data["data"]:
+            for k in r.keys():
+                if k in char_columns:
+                    l = len(r[k].strip())
+                    if char_column_lens[k] < l:
+                        char_column_lens[k] = l
+
+        # --- get columns
+        column_list_char = ("".join(str(e) + "," for e in data["type"].keys()))[:-1]
+
+        # --- check create table
+        cursor.execute(
+            "select distinct table_name from information_schema.tables where upper(table_schema) = upper('"
+            + data["schema"]["name"]
+            + "') and upper(table_name) = upper('"
+            + data["table"]["name"]
+            + "')"
+        )
+        if cursor.rowcount >= 1:
+            # --- check if columns are the same and update
+            sql = (
+                "select column_name \
+            , data_type \
+            , character_maximum_length \
+            from information_schema.columns \
+            where table_schema = '"
+                + data["schema"]["name"]
+                + "' \
+            and table_name = '"
+                + data["table"]["name"]
+                + "' \
+            and column_name not like 'db_%'"
+            )
+
+            cursor.execute(sql)
+            rows = cursor.fetchall()
+
+            column_updates = False
+            for k in char_column_lens.keys():
+                for r in rows:
+
+                    if k == r[0]:
+
+                        if char_column_lens[k] > r[2]:
+                            sql = (
+                                "ALTER TABLE "
+                                + data["schema"]["name"]
+                                + "."
+                                + data["table"]["name"]
+                                + " ALTER COLUMN "
+                                + k
+                                + " TYPE character("
+                                + str(char_column_lens[k])
+                                + ")"
+                            )
+                            print("NOTE:", sql)
+                            cursor.execute(sql)
+                            conn.commit()
+                            column_updates = True
+
+            # --- if updates made, then update hash
+            if column_updates == True:
+
+                sql = (
+                    "UPDATE "
+                    + data["schema"]["name"]
+                    + "."
+                    + data["table"]["name"]
+                    + " SET db_hash_id = md5(CAST(("
+                    + column_list_char
+                    + ")AS text))::uuid"
+                )
+                print("NOTE:", sql)
+                cursor.execute(sql)
+                conn.commit()
+
+        else:
+            # --- generate create table code
+            for c in char_column_lens:
+                data["type"][c] = "character(" + str(char_column_lens[c]).strip() + ")"
+
+            sql = (
+                "CREATE TABLE "
+                + data["schema"]["name"]
+                + "."
+                + data["table"]["name"]
+                + " ("
+            )
+
+            for c in data["type"]:
+
+                sql = sql + c + " " + data["type"][c] + ","
+
+            sql = (
+                sql
+                + "db_id bigserial NOT NULL, db_hash_id uuid, \
+        db_insert_dt timestamp with time zone DEFAULT timezone('utc'::text, now()), \
+        db_update_dt timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, '9999-09-09 00:00:00'))"
+            )
+
+            print("NOTE:", sql)
+            cursor.execute(sql)
+            conn.commit()
+
+            # --- apply permissions
+            sql = (
+                "ALTER TABLE "
+                + data["schema"]["name"]
+                + "."
+                + data["table"]["name"]
+                + ' OWNER TO "'
+                + data["table"]["owner"]
+                + '"'
+            )
+            print("NOTE:", sql)
+            cursor.execute(sql)
+            conn.commit()
+
+            for g in data["table"]["grant"].keys():
+                sql = (
+                    "GRANT "
+                    + g.upper()
+                    + " ON TABLE "
+                    + data["schema"]["name"]
+                    + "."
+                    + data["table"]["name"]
+                    + ' TO "'
+                    + data["table"]["grant"][g]
+                    + '"'
+                )
+                print("NOTE:", sql)
+                cursor.execute(sql)
+                conn.commit()
+
+            # --- setup default indexs and constraints
+            sql = (
+                "ALTER TABLE "
+                + data["schema"]["name"]
+                + "."
+                + data["table"]["name"]
+                + " ADD CONSTRAINT "
+                + data["schema"]["name"]
+                + "_"
+                + data["table"]["name"]
+                + "_db_id_pk PRIMARY KEY (db_id)"
+            )
+            print("NOTE:", sql)
+            cursor.execute(sql)
+            conn.commit()
+
+            sql = (
+                "CREATE INDEX "
+                + data["schema"]["name"]
+                + "_"
+                + data["table"]["name"]
+                + "_db_id_index ON "
+                + data["schema"]["name"]
+                + "."
+                + data["table"]["name"]
+                + " (db_id)"
+            )
+            print("NOTE:", sql)
+            cursor.execute(sql)
+            conn.commit()
+
+            sql = (
+                "CREATE INDEX "
+                + data["schema"]["name"]
+                + "_"
+                + data["table"]["name"]
+                + "_db_hash_id_index ON "
+                + data["schema"]["name"]
+                + "."
+                + data["table"]["name"]
+                + " (db_hash_id)"
+            )
+            print("NOTE:", sql)
+            cursor.execute(sql)
+            conn.commit()
+
+            # --- create specified indexes
+            for i in data["index"]:
+
+                sql = (
+                    "CREATE INDEX "
+                    + data["schema"]["name"]
+                    + "_"
+                    + data["table"]["name"]
+                    + "_"
+                    + i
+                    + "_index ON "
+                    + data["schema"]["name"]
+                    + "."
+                    + data["table"]["name"]
+                    + " ("
+                    + i
+                    + ")"
+                )
+                print("NOTE:", sql)
+                cursor.execute(sql)
+                conn.commit()
+
+        # --- create tmp tabe for data insert
+
+        # first drop if exists
+        pid = str(os.getpid())
+        hn = str(socket.gethostname())
+        tmp_tbl = (
+            "tmp_" + pid + "_" + socket.gethostname() + "_" + data["table"]["name"]
+        )
+        sql = "DROP TABLE IF EXISTS " + data["schema"]["name"] + "." + tmp_tbl
+        print("NOTE:", sql)
+        cursor.execute(sql)
+        conn.commit()
+
+        # next create tmp table
+        sql = (
+            "CREATE TABLE "
+            + data["schema"]["name"]
+            + "."
+            + tmp_tbl
+            + " AS SELECT * FROM "
+            + data["schema"]["name"]
+            + "."
+            + data["table"]["name"]
+            + " WHERE 1=2;"
+        )
+        print("NOTE:", sql)
+        cursor.execute(sql)
+        conn.commit()
+
+        # apply permissions
+        sql = (
+            "ALTER TABLE "
+            + data["schema"]["name"]
+            + "."
+            + tmp_tbl
+            + ' OWNER TO "'
+            + data["table"]["owner"]
+            + '"'
+        )
+        print("NOTE:", sql)
+        cursor.execute(sql)
+        conn.commit()
+
+        for g in data["table"]["grant"].keys():
+            sql = (
+                "GRANT "
+                + g.upper()
+                + " ON TABLE "
+                + data["schema"]["name"]
+                + "."
+                + tmp_tbl
+                + ' TO "'
+                + data["table"]["grant"][g]
+                + '"'
+            )
+            print("NOTE:", sql)
+            cursor.execute(sql)
+            conn.commit()
+
+        # --- insert into tmp table
+
+        sql = (
+            "INSERT INTO "
+            + data["schema"]["name"]
+            + "."
+            + tmp_tbl
+            + "( "
+            + column_list_char
+            + " ) VALUES "
+        )
+
+        morg_special_chars = "("
+        for i in data["type"].keys():
+            morg_special_chars = morg_special_chars + "%s, "
+
+        morg_special_chars = morg_special_chars.strip()[:-1] + ")"
+
+        print("NOTE: {0}".format(column_list_char))
+        print("NOTE: {0}".format(morg_special_chars))
+
+        # --- create insert data list
+        idata = []
+        for l_item in data["data"]:
+            tmp_idata = []
+            for key, value in l_item.items():
+                tmp_idata.append(value)
+            idata.append(tmp_idata)
+
+        # --- we dont need the data anymore
+        data["data"] = None
+
+        # --- split data and insert
+        split_count = round(len(idata) / max_rows)
+
+        for i in range(split_count):
+
+            if i == 0:
+
+                start_row = 0
+
+                if split_count == 1:
+                    end_row = len(idata)
+                else:
+                    end_row = max_rows
+
+            elif i == split_count - 1:
+
+                start_row = end_row
+                end_row = len(idata)
+
+            else:
+
+                start_row = end_row
+                end_row = start_row + max_rows
+
+            print("NOTE: Inserting", end_row, "of", len(idata))
+
+            args_str = b",".join(
+                cursor.mogrify(morg_special_chars, x) for x in idata[start_row:end_row]
+            )
+
+            args_str = args_str.decode("utf-8")
+
+            cursor.execute(sql + args_str)
+            conn.commit()
+
+        # --- we dont need idata anymore
+        del idata
+
+        # --- now that the data is in lets check for dupes vs permanent table
+        sql = (
+            "UPDATE "
+            + data["schema"]["name"]
+            + "."
+            + tmp_tbl
+            + " SET db_hash_id = md5(CAST(("
+            + column_list_char
+            + ")AS text))::uuid"
+        )
+        cursor.execute(sql)
+        conn.commit()
+
+        sql = (
+            "DELETE FROM "
+            + data["schema"]["name"]
+            + "."
+            + tmp_tbl
+            + " B USING "
+            + data["schema"]["name"]
+            + "."
+            + data["table"]["name"]
+            + " C WHERE B.db_hash_id = C.db_hash_id"
+        )
+        cursor.execute(sql)
+        conn.commit()
+
+        # --- update end date for records where we have updates
+        u_count = len(data["unique"])
+        _count = 1
+        unique_str = ""
+        for c in data["unique"]:
+
+            unique_str = unique_str + "B." + c.strip() + " = C." + c
+
+            if _count != u_count:
+                unique_str = unique_str + " and "
+
+            _count += 1
+
+        sql = (
+            "UPDATE "
+            + data["schema"]["name"]
+            + "."
+            + data["table"]["name"]
+            + " B SET db_update_dt = timezone('utc'::text, now()) FROM "
+            + data["schema"]["name"]
+            + "."
+            + tmp_tbl
+            + " C WHERE "
+            + unique_str
+        )
+        cursor.execute(sql)
+        conn.commit()
+
+        # --- insert into permanent table and tidy up
+        sql = (
+            "INSERT INTO "
+            + data["schema"]["name"]
+            + "."
+            + data["table"]["name"]
+            + " ("
+            + column_list_char
+            + ") SELECT "
+            + column_list_char
+            + " FROM "
+            + data["schema"]["name"]
+            + "."
+            + tmp_tbl
+        )
+        cursor.execute(sql)
+        conn.commit()
+
+        sql = (
+            "UPDATE "
+            + data["schema"]["name"]
+            + "."
+            + data["table"]["name"]
+            + " SET db_hash_id = md5(CAST(("
+            + column_list_char
+            + ")AS text))::uuid WHERE db_hash_id IS NULL"
+        )
+        cursor.execute(sql)
+        conn.commit()
+
+        sql = "drop table if exists " + data["schema"]["name"] + "." + tmp_tbl
+        cursor.execute(sql)
+        conn.commit()
+
+        print("NOTE: SCD2 Load Complete.")
+        conn.close()
