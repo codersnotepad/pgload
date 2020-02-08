@@ -41,7 +41,7 @@ class pgload:
         self.db_conn_str = "host=<host name> port=<port> dbname=<database> user=<user name> password=<password>"
 
 
-    def validate_data(self, data, ):
+    def validate_data(self, data):
 
         # ----------------------------------------------------------------------------------------
         # order of operations
@@ -434,6 +434,7 @@ class pgload:
         import psycopg2
         import os
         import socket
+        import math
 
         # ----------------------------------------------------------------------------------------
         # order of operations
@@ -782,7 +783,6 @@ class pgload:
             conn.commit()
 
         # --- insert into tmp table
-
         sql = (
             "INSERT INTO "
             + data["schema"]["name"]
@@ -814,7 +814,8 @@ class pgload:
         data["data"] = None
 
         # --- split data and insert
-        split_count = round(len(idata) / max_rows)
+        split_count = math.ceil(len(idata) / max_rows)
+        print('NOTE: Data will be split into {0} group(s) for insert.',split_count)
 
         for i in range(split_count):
 
