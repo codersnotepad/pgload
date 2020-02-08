@@ -25,3 +25,4 @@ def test_validate_data(capsys):
         ""
         in captured.out
     )
+ 

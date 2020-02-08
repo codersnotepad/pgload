@@ -1,4 +1,5 @@
 class pgload:
+
     def __init__(self):
 
         self.valid_keys = ["data", "type", "index", "unique", "table", "schema"]
@@ -39,7 +40,8 @@ class pgload:
 
         self.db_conn_str = "host=<host name> port=<port> dbname=<database> user=<user name> password=<password>"
 
-    def validate_data(self, data):
+
+    def validate_data(self, data, ):
 
         # ----------------------------------------------------------------------------------------
         # order of operations
@@ -519,9 +521,11 @@ class pgload:
         for r in data["data"]:
             for k in r.keys():
                 if k in char_columns:
-                    l = len(r[k].strip())
-                    if char_column_lens[k] < l:
-                        char_column_lens[k] = l
+                    #--- skip if cahracter column value is None
+                    if r[k]:
+                        l = len(r[k].strip())
+                        if char_column_lens[k] < l:
+                            char_column_lens[k] = l
 
         # --- get columns
         column_list_char = ("".join(str(e) + "," for e in data["type"].keys()))[:-1]
