@@ -1,5 +1,4 @@
 class pgload:
-
     def __init__(self):
 
         self.valid_keys = ["data", "type", "index", "unique", "table", "schema"]
@@ -26,10 +25,13 @@ class pgload:
         self.valid_char_types = ["character"]
         self.valid_char_types.sort()
 
+        self.valid_oth_types = ["jsonb", "boolean"]
+
         self.valid_types = list()
         self.valid_types = self.valid_types + self.valid_date_types
         self.valid_types = self.valid_types + self.valid_num_types
         self.valid_types = self.valid_types + self.valid_char_types
+        self.valid_types = self.valid_types + self.valid_oth_types
         self.valid_types.sort()
 
         self.invalid_date_values = ["", "0:0:0", "0000-00-00"]
@@ -39,7 +41,6 @@ class pgload:
         self.invalid_num_values.sort()
 
         self.db_conn_str = "host=<host name> port=<port> dbname=<database> user=<user name> password=<password>"
-
 
     def validate_data(self, data):
 
@@ -288,6 +289,7 @@ class pgload:
         column_names = list()
         date_columns = list()
         num_columns = list()
+        oth_columns = list()
         for t in data["type"]:
             column_names.append(t.lower())
             if data["type"][t].lower() not in self.valid_types:
@@ -296,6 +298,8 @@ class pgload:
                 date_columns.append(t.lower())
             if data["type"][t].lower() in self.valid_num_types:
                 num_columns.append(t.lower())
+            if data["type"][t].lower() in self.valid_oth_types:
+                oth_columns.append(t.lower())
 
         invalid_types.sort()
         if len(invalid_types) > 0:
@@ -522,7 +526,7 @@ class pgload:
         for r in data["data"]:
             for k in r.keys():
                 if k in char_columns:
-                    #--- skip if cahracter column value is None
+                    # --- skip if cahracter column value is None
                     if r[k]:
                         l = len(r[k].strip())
                         if char_column_lens[k] < l:
@@ -815,7 +819,9 @@ class pgload:
 
         # --- split data and insert
         split_count = math.ceil(len(idata) / max_rows)
-        print('NOTE: Data will be split into {0} group(s) for insert.',split_count)
+        print(
+            "NOTE: Data will be split into {0} group(s) for insert.".format(split_count)
+        )
 
         for i in range(split_count):
 
