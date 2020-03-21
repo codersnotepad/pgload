@@ -281,7 +281,7 @@ class pgload:
             return False
         else:
             if len(data["data"]) == 0:
-                raise ValidationError("No data rows to process.")
+                raise EOFError("No data rows to process.")
                 return False
 
         # --- check types are valid
@@ -480,11 +480,12 @@ class pgload:
         cursor = conn.cursor()
 
         # --- check/create schema
-        cursor.execute(
+        sql = (
             "select distinct schema_name from information_schema.schemata where schema_name = '"
             + data["schema"]["name"]
             + "'"
         )
+        cursor.execute(sql)
         if cursor.rowcount >= 1:
             pass
         else:
