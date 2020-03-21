@@ -17,7 +17,7 @@ RUN pip install --requirement /tmp/requirements_dev.txt && \
 
 RUN pip install --index-url https://test.pypi.org/simple/ \
     --extra-index-url https://pypi.org/simple \
-    pgload==0.1.7
+    pgload==0.1.8
 
 RUN ln -sv /home/jovyan/CPU /mnt/ns01
 
