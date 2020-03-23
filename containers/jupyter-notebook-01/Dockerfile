@@ -15,9 +15,7 @@ RUN pip install --requirement /tmp/requirements_dev.txt && \
     fix-permissions $CONDA_DIR && \
     fix-permissions /home/$NB_USER
 
-RUN pip install --index-url https://test.pypi.org/simple/ \
-    --extra-index-url https://pypi.org/simple \
-    pgload==0.1.8
+RUN pip install -i https://test.pypi.org/simple/ pgload
 
 RUN ln -sv /home/jovyan/CPU /mnt/ns01
 
