@@ -19,4 +19,4 @@ RUN pip install -i https://test.pypi.org/simple/ pgload
 
 RUN ln -sv /home/jovyan/CPU /mnt/ns01
 
-# pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple pgload==0.1.7
+# pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple pgload==0.1.9
