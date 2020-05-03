@@ -64,6 +64,7 @@ class pgload:
         # --- check index columns are in types
         # --- check unique columns are in types
         # --- check keys in data rows are in types
+        # --- check data rows contain all columns in type
         # --- lower case all data row keys
         # --- lower case all type keys
         # --- lower case all index keys
@@ -356,6 +357,23 @@ class pgload:
                 "Key(s) found in data row not in type list {0}.".format(invalid_dr_keys)
             )
             return False
+
+        # --- check data rows contain all columns in type
+        mis_data_row_keys = list()
+        for r in data["data"]:
+            for c in column_names:
+                if c not in r.keys():
+                    mis_data_row_keys.append(c)
+            mis_data_row_keys = list(set(mis_data_row_keys))
+        print(mis_data_row_keys)
+        if len(mis_data_row_keys) > 0:
+            raise KeyError(
+                "Key(s) found in type list not in data row {0}. We expect each row to contain all keys.".format(
+                    mis_data_row_keys
+                )
+            )
+            return False
+
         del invalid_dr_keys, column_names
 
         # --- lower case all data row keys
@@ -522,12 +540,12 @@ class pgload:
 
         char_column_lens = dict()
         for c in char_columns:
-            char_column_lens[c] = 0
+            char_column_lens[c] = 1  # all char columns have a min length of 1
 
         for r in data["data"]:
             for k in r.keys():
                 if k in char_columns:
-                    # --- skip if cahracter column value is None
+                    # --- skip if character column value is None
                     if r[k]:
                         l = len(r[k].strip())
                         if char_column_lens[k] < l:
