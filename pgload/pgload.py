@@ -75,6 +75,7 @@ class pgload:
         # --- upper case all table.grant keys
         # --- check timestamp type columns for invalid data values
         # --- check numeric type columns for invalid data values
+        # --- check for np.nan and convert to None
         #
         # ----------------------------------------------------------------------------------------
 
@@ -374,7 +375,7 @@ class pgload:
             )
             return False
 
-        del invalid_dr_keys, column_names
+        del invalid_dr_keys
 
         # --- lower case all data row keys
         for i in range(len(data["data"])):
@@ -446,6 +447,24 @@ class pgload:
                 "      Invalide numeric values are limited to {0}".format(
                     self.invalid_num_values
                 )
+            )
+
+        # --- check for np.nan and convert to None
+        nan_values = 0
+        for i in range(len(data["data"])):
+            for c in column_names:
+                if str(data["data"][i][c]).strip().lower() == "nan":
+                    data["data"][i][c] = None
+                    nan_values += 1
+
+        if nan_values > 0:
+            print(
+                "NOTE: {0} values updated due to invalide nan/None type.".format(
+                    nan_values
+                )
+            )
+            print(
+                "      nan/None type values are limited to python default 'None'. e.g. np.nan is not valid."
             )
 
         print("NOTE: Validation complete. No issues found.")
