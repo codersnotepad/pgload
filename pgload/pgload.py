@@ -467,6 +467,17 @@ class pgload:
                 "      nan/None type values are limited to python default 'None'. e.g. np.nan is not valid."
             )
 
+        # --- get char column lengths
+        char_columns = list()
+        for c in data["type"]:
+            if data["type"][c] in self.valid_char_types:
+                char_columns.append(c.lower())
+
+        # --- strip all char columns
+        for i in range(len(data["data"])):
+            for c in char_columns:
+                data["data"][i][c] = data["data"][i][c].strip()
+
         print("NOTE: Validation complete. No issues found.")
         return data
 
