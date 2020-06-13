@@ -17,5 +17,6 @@ del hard_dependencies, dependency, missing_dependencies
 from .pgload import pgload
 
 pgload = pgload()
+__version__ = "0.2.2"
 # validate_data = pgload().validate_data
 # scd2_load = pgload().scd2_load
