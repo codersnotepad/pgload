@@ -586,7 +586,7 @@ class pgload:
 
         # --- check create table
         cursor.execute(
-            "select distinct table_name from upper(information_schema.tables) where upper(table_schema) = upper('"
+            "select distinct table_name from information_schema.tables where upper(table_schema) = upper('"
             + data["schema"]["name"]
             + "') and upper(table_name) = upper('"
             + data["table"]["name"]
