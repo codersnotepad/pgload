@@ -586,7 +586,7 @@ class pgload:
 
         # --- check create table
         cursor.execute(
-            "select distinct table_name from information_schema.tables where upper(table_schema) = upper('"
+            "select distinct table_name from upper(information_schema.tables) where upper(table_schema) = upper('"
             + data["schema"]["name"]
             + "') and upper(table_name) = upper('"
             + data["table"]["name"]
@@ -599,13 +599,13 @@ class pgload:
             , data_type \
             , character_maximum_length \
             from information_schema.columns \
-            where table_schema = '"
+            where upper(table_schema) = upper('"
                 + data["schema"]["name"]
-                + "' \
-            and table_name = '"
+                + "') \
+            and upper(table_name) = upper('"
                 + data["table"]["name"]
-                + "' \
-            and column_name not like 'db_%'"
+                + "') \
+            and upper(column_name) not like 'DB_%'"
             )
 
             cursor.execute(sql)
