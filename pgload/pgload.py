@@ -366,7 +366,7 @@ class pgload:
                 if c not in r.keys():
                     mis_data_row_keys.append(c)
             mis_data_row_keys = list(set(mis_data_row_keys))
-        print(mis_data_row_keys)
+
         if len(mis_data_row_keys) > 0:
             raise KeyError(
                 "Key(s) found in type list not in data row {0}. We expect each row to contain all keys.".format(
