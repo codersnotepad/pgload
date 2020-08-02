@@ -462,7 +462,7 @@ class pgload:
 
         if nan_values > 0:
             print(
-                "NOTE: {0} values updated due to invalide nan/None type.".format(
+                "NOTE: {0} values updated due to invalid nan/None type.".format(
                     nan_values
                 )
             )
