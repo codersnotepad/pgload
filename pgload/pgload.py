@@ -44,6 +44,8 @@ class pgload:
 
     def validate_data(self, data):
 
+        import math
+
         # ----------------------------------------------------------------------------------------
         # order of operations
         # ----------------------------------------------------------------------------------------
@@ -453,9 +455,10 @@ class pgload:
         nan_values = 0
         for i in range(len(data["data"])):
             for c in column_names:
-                if str(data["data"][i][c]).strip().lower() == "nan":
-                    data["data"][i][c] = None
-                    nan_values += 1
+                if isinstance(data["data"][i][c], float):
+                    if math.isnan(data["data"][i][c]):
+                        data["data"][i][c] = None
+                        nan_values += 1
 
         if nan_values > 0:
             print(
