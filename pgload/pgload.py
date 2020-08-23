@@ -783,9 +783,9 @@ class pgload:
 
         # first drop if exists
         pid = str(os.getpid())
-        hn = str(socket.gethostname())
+        hn = ''.join(filter(str.isalnum, str(socket.gethostname())))
         tmp_tbl = (
-            "tmp_" + pid + "_" + socket.gethostname() + "_" + data["table"]["name"]
+            "tmp_" + pid + "_" + hn + "_" + data["table"]["name"]
         )
         sql = "DROP TABLE IF EXISTS " + data["schema"]["name"] + "." + tmp_tbl
         print("NOTE:", sql)
