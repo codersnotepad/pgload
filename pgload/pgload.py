@@ -484,7 +484,7 @@ class pgload:
         print("NOTE: Validation complete. No issues found.")
         return data
 
-    def scd2_load(self, data, max_rows=100000, validate_data=False):
+    def scd2_load(self, data, max_rows=100000, validate_data=False, debug=False):
 
         import psycopg2
         import os
@@ -547,7 +547,8 @@ class pgload:
                 + data["schema"]["owner"]
                 + '"'
             )
-            print("NOTE:", sql)
+            if debug:
+                print("NOTE:", sql)
             cursor.execute(sql)
             conn.commit()
 
@@ -561,7 +562,8 @@ class pgload:
                     + data["schema"]["grant"][g]
                     + '"'
                 )
-                print("NOTE:", sql)
+                if debug:
+                    print("NOTE:", sql)
                 cursor.execute(sql)
                 conn.commit()
 
@@ -632,7 +634,8 @@ class pgload:
                                 + str(char_column_lens[k])
                                 + ")"
                             )
-                            print("NOTE:", sql)
+                            if debug:
+                                print("NOTE:", sql)
                             cursor.execute(sql)
                             conn.commit()
                             column_updates = True
@@ -649,7 +652,8 @@ class pgload:
                     + column_list_char
                     + ")AS text))::uuid"
                 )
-                print("NOTE:", sql)
+                if degub:
+                    print("NOTE:", sql)
                 cursor.execute(sql)
                 conn.commit()
 
@@ -676,8 +680,8 @@ class pgload:
         db_insert_dt timestamp with time zone DEFAULT timezone('utc'::text, now()), \
         db_update_dt timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, '9999-09-09 00:00:00'))"
             )
-
-            print("NOTE:", sql)
+            if debug:
+                print("NOTE:", sql)
             cursor.execute(sql)
             conn.commit()
 
@@ -691,7 +695,8 @@ class pgload:
                 + data["table"]["owner"]
                 + '"'
             )
-            print("NOTE:", sql)
+            if debug:
+                print("NOTE:", sql)
             cursor.execute(sql)
             conn.commit()
 
@@ -707,7 +712,8 @@ class pgload:
                     + data["table"]["grant"][g]
                     + '"'
                 )
-                print("NOTE:", sql)
+                if debug:
+                    print("NOTE:", sql)
                 cursor.execute(sql)
                 conn.commit()
 
@@ -723,7 +729,8 @@ class pgload:
                 + data["table"]["name"]
                 + "_db_id_pk PRIMARY KEY (db_id)"
             )
-            print("NOTE:", sql)
+            if debug:
+                print("NOTE:", sql)
             cursor.execute(sql)
             conn.commit()
 
@@ -738,7 +745,8 @@ class pgload:
                 + data["table"]["name"]
                 + " (db_id)"
             )
-            print("NOTE:", sql)
+            if debug:
+                print("NOTE:", sql)
             cursor.execute(sql)
             conn.commit()
 
@@ -753,7 +761,8 @@ class pgload:
                 + data["table"]["name"]
                 + " (db_hash_id)"
             )
-            print("NOTE:", sql)
+            if debug:
+                print("NOTE:", sql)
             cursor.execute(sql)
             conn.commit()
 
@@ -775,7 +784,8 @@ class pgload:
                     + i
                     + ")"
                 )
-                print("NOTE:", sql)
+                if debug:
+                    print("NOTE:", sql)
                 cursor.execute(sql)
                 conn.commit()
 
@@ -788,7 +798,8 @@ class pgload:
             "tmp_" + pid + "_" + hn + "_" + data["table"]["name"]
         )
         sql = "DROP TABLE IF EXISTS " + data["schema"]["name"] + "." + tmp_tbl
-        print("NOTE:", sql)
+        if debug:
+            print("NOTE:", sql)
         cursor.execute(sql)
         conn.commit()
 
@@ -804,7 +815,8 @@ class pgload:
             + data["table"]["name"]
             + " WHERE 1=2;"
         )
-        print("NOTE:", sql)
+        if debug:
+            print("NOTE:", sql)
         cursor.execute(sql)
         conn.commit()
 
@@ -818,7 +830,8 @@ class pgload:
             + data["table"]["owner"]
             + '"'
         )
-        print("NOTE:", sql)
+        if debug:
+            print("NOTE:", sql)
         cursor.execute(sql)
         conn.commit()
 
@@ -834,7 +847,8 @@ class pgload:
                 + data["table"]["grant"][g]
                 + '"'
             )
-            print("NOTE:", sql)
+            if debug:
+                print("NOTE:", sql)
             cursor.execute(sql)
             conn.commit()
 
@@ -854,9 +868,9 @@ class pgload:
             morg_special_chars = morg_special_chars + "%s, "
 
         morg_special_chars = morg_special_chars.strip()[:-1] + ")"
-
-        print("NOTE: {0}".format(column_list_char))
-        print("NOTE: {0}".format(morg_special_chars))
+        if debug:
+            print("NOTE: {0}".format(column_list_char))
+            print("NOTE: {0}".format(morg_special_chars))
 
         # --- create insert data list
         idata = []
