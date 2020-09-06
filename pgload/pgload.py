@@ -479,7 +479,8 @@ class pgload:
         # --- strip all char columns
         for i in range(len(data["data"])):
             for c in char_columns:
-                data["data"][i][c] = data["data"][i][c].strip()
+                if data["data"][i][c] is not None:
+                    data["data"][i][c] = data["data"][i][c].strip()
 
         print("NOTE: Validation complete. No issues found.")
         return data
