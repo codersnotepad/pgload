@@ -365,7 +365,7 @@ class pgload:
         mis_data_row_keys = list()
         for r in data["data"]:
             for c in column_names:
-                if c not in r.keys():
+                if c.lower() not in [k.lower() for k in r.keys()]:
                     mis_data_row_keys.append(c)
             mis_data_row_keys = list(set(mis_data_row_keys))
 
@@ -794,10 +794,8 @@ class pgload:
 
         # first drop if exists
         pid = str(os.getpid())
-        hn = ''.join(filter(str.isalnum, str(socket.gethostname())))
-        tmp_tbl = (
-            "tmp_" + pid + "_" + hn + "_" + data["table"]["name"]
-        )
+        hn = "".join(filter(str.isalnum, str(socket.gethostname())))
+        tmp_tbl = "tmp_" + pid + "_" + hn + "_" + data["table"]["name"]
         sql = "DROP TABLE IF EXISTS " + data["schema"]["name"] + "." + tmp_tbl
         if debug:
             print("NOTE:", sql)
