@@ -18,5 +18,6 @@ from .pgload import pgload
 
 pgload = pgload()
 __version__ = "0.2.6"
-# validate_data = pgload().validate_data
-# scd2_load = pgload().scd2_load
+__help__ = vars(pgload)
+validate_data = pgload.validate_data
+scd2_load = pgload.scd2_load

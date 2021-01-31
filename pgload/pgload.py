@@ -41,6 +41,8 @@ class pgload:
         self.invalid_num_values.sort()
 
         self.db_conn_str = "host=<host name> port=<port> dbname=<database> user=<user name> password=<password>"
+        
+        self.functions = ["validate_data","scd2_load"]
 
     def validate_data(self, data):
 
@@ -324,7 +326,7 @@ class pgload:
         invalid_index.sort()
         if len(invalid_index) > 0:
             raise KeyError(
-                "Column(s) in index list not in type list found: {0}".format(
+                "Column(s) in index list, not in type list found: {0}".format(
                     invalid_index
                 )
             )
@@ -339,7 +341,7 @@ class pgload:
         invalid_unique.sort()
         if len(invalid_unique) > 0:
             raise KeyError(
-                "Column(s) in unique list not in type list found: {0}".format(
+                "Column(s) in unique list, not in type list found: {0}".format(
                     invalid_unique
                 )
             )
@@ -357,7 +359,7 @@ class pgload:
         invalid_dr_keys.sort()
         if len(invalid_dr_keys) > 0:
             raise KeyError(
-                "Key(s) found in data row not in type list {0}.".format(invalid_dr_keys)
+                "Key(s) found in data row, not in type list {0}.".format(invalid_dr_keys)
             )
             return False
 
@@ -371,7 +373,7 @@ class pgload:
 
         if len(mis_data_row_keys) > 0:
             raise KeyError(
-                "Key(s) found in type list not in data row {0}. We expect each row to contain all keys.".format(
+                "Key(s) found in type list, not in data row {0}. We expect each row to contain all keys.".format(
                     mis_data_row_keys
                 )
             )

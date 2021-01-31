@@ -21,6 +21,29 @@ test01 = {
     "table": {"name": "table01", "owner": "tim", "grant": {"all": "group01"}},
 }
 
+# test column not in data list in type list (alive), pgload should fill it with None
+test01 = {
+    "data": [
+        {"id": 1, "name": "tim", "address": None},
+        {"id": 2, "name": "kim", "address": "8 Bell Road", "alive": True},
+        {"id": 3, "name": "caitlin", "address": "50 Nunmill", "alive": True},
+    ],
+    "type": {
+        "id": "bigint",
+        "name": "character",
+        "address": "character",
+        "alive": "boolean",
+    },
+    "index": ["id"],
+    "unique": ["id"],
+    "schema": {
+        "name": "testdata",
+        "owner": "tim",
+        "grant": {"usage": "group02", "all": "group01"},
+    },
+    "table": {"name": "table01", "owner": "tim", "grant": {"all": "group01"}},
+}
+
 
 # scd2_load
 test01 = {
