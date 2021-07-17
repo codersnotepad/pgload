@@ -1,4 +1,12 @@
-# Let users know if they're missing any of our hard dependencies
+"""
+Provides
+  1. tool for validating json data is ready for insertion into a postgres database.
+  2. tool to insert validated data into a postgresql using SCD2 method.
+
+How to use the documentation
+----------------------------
+"""
+
 hard_dependencies = ["psycopg2"]
 missing_dependencies = []
 
@@ -17,7 +25,7 @@ del hard_dependencies, dependency, missing_dependencies
 from .pgload import pgload
 
 pgload = pgload()
-__version__ = "0.2.6"
-__help__ = vars(pgload)
 validate_data = pgload.validate_data
 scd2_load = pgload.scd2_load
+__version__ = "0.2.6"
+#__help__ = vars(pgload)

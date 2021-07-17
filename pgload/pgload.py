@@ -41,7 +41,7 @@ class pgload:
         self.invalid_num_values.sort()
 
         self.db_conn_str = "host=<host name> port=<port> dbname=<database> user=<user name> password=<password>"
-        
+
         self.functions = ["validate_data","scd2_load"]
 
     def validate_data(self, data):
@@ -655,7 +655,7 @@ class pgload:
                     + column_list_char
                     + ")AS text))::uuid"
                 )
-                if degub:
+                if debug:
                     print("NOTE:", sql)
                 cursor.execute(sql)
                 conn.commit()

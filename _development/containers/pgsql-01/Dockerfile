@@ -1,0 +1,11 @@
+# docker build -t pgsql-01 .
+# docker run -e POSTGRES_PASSWORD=postgres -p 5432:5432 --name pgsql-01 pgsql-01
+
+FROM postgres:11
+
+USER postgres
+
+# CREATE ROLE "ETL_Group" WITH NOLOGIN NOSUPERUSER INHERIT NOCREATEDB NOCREATEROLE NOREPLICATION;
+# CREATE USER etl WITH PASSWORD 'etl';
+# ALTER GROUP "ETL_Group" ADD user etl;
+# CREATE DATABASE DB01 OWNER "ETL_Group";
