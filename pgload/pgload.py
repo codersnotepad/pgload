@@ -44,6 +44,8 @@ class pgload:
 
         self.functions = ["validate_data","scd2_load"]
 
+        self.logging_level = 0 # 0 = Errors Only, 1 = Important Notes, 2 = Verbose
+
     def validate_data(self, data):
 
         import math
@@ -421,7 +423,7 @@ class pgload:
                     data["data"][i][c] = None
                     invalid_date_values += 1
 
-        if invalid_date_values > 0:
+        if invalid_date_values > 0 and self.logging_level >=1:
             print(
                 "NOTE: {0} date values updated due to invalude data.".format(
                     invalid_date_values
@@ -441,7 +443,7 @@ class pgload:
                     data["data"][i][c] = None
                     invalid_num_values += 1
 
-        if invalid_num_values > 0:
+        if invalid_num_values > 0 and self.logging_level >=1:
             print(
                 "NOTE: {0} numeric values updated due to invalude data.".format(
                     invalid_num_values
@@ -462,7 +464,7 @@ class pgload:
                         data["data"][i][c] = None
                         nan_values += 1
 
-        if nan_values > 0:
+        if nan_values > 0 and self.logging_level >=1:
             print(
                 "NOTE: {0} values updated due to invalid nan/None type.".format(
                     nan_values
@@ -484,7 +486,9 @@ class pgload:
                 if data["data"][i][c] is not None:
                     data["data"][i][c] = data["data"][i][c].strip()
 
-        print("NOTE: Validation complete. No issues found.")
+        if  self.logging_level >=1:
+            print("NOTE: Validation complete. No issues found.")
+
         return data
 
     def scd2_load(self, data, max_rows=100000, validate_data=False, debug=False):
@@ -886,9 +890,10 @@ class pgload:
 
         # --- split data and insert
         split_count = math.ceil(len(idata) / max_rows)
-        print(
-            "NOTE: Data will be split into {0} group(s) for insert.".format(split_count)
-        )
+        if self.logging_level >=1:
+            print(
+                "NOTE: Data will be split into {0} group(s) for insert.".format(split_count)
+            )
 
         for i in range(split_count):
 
@@ -911,7 +916,8 @@ class pgload:
                 start_row = end_row
                 end_row = start_row + max_rows
 
-            print("NOTE: Inserting", end_row, "of", len(idata))
+            if self.logging_level >=1:
+                print("NOTE: Inserting", end_row, "of", len(idata))
 
             args_str = b",".join(
                 cursor.mogrify(morg_special_chars, x) for x in idata[start_row:end_row]
@@ -1014,5 +1020,6 @@ class pgload:
         cursor.execute(sql)
         conn.commit()
 
-        print("NOTE: SCD2 Load Complete.")
+        if self.logging_level >=1:
+            print("NOTE: SCD2 Load Complete.")
         conn.close()
